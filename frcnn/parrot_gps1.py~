@@ -44,12 +44,12 @@ def parrot_plan():
             quad_vel.publish(cmd)
         count += 1
         rate.sleep()
-    print 'done taking off'
 
     (start_time, path_time, count) = (rospy.Time.now().to_sec(), 0, 0)     
 
     while not rospy.is_shutdown(): 
-        if path_time < 20: # 20sec of flying towards GPS coords (see flightplan()), currently set in the middle of Broad Field
+        if path_time < 20: # 20sec of GPS flying
+            #see flightplan() for example GPS format, currently set in the middle of Broad Field
             filename = std_msgs.msg.String()
             filename.data = 'broadcenter.mavlink' # Uploaded via filezilla to bebop drone's flightplans folder
             quad_planstart.publish(filename)
@@ -58,10 +58,11 @@ def parrot_plan():
             # could also use autoflight/start -> /pause (Empty) -> /start (resumes from most recent waypoint)
             # then, the waypoint file can dictate both takeoff and landing (no need for time counting)
         
-
-
+        elif path_time < 30: #stop GPS autoflight
+            quad_planstop.publish(std_msgs.msg.Empty())
+            
         elif path_time < 500: # Fixate on corner
-            print "hovering at corner"       
+           
             img = camera.getFrame() # Retrieve image from camera
             name = 'frame' + str(int(path_time)) + '.jpg' 
 
@@ -80,14 +81,20 @@ def parrot_plan():
                     min_dist = dist_to_target
                     dX = center - corner_center
 
-            # TODO: Make small translations based on dX 
+            cmd = geometry_msgs.msg.Twist()
+            kp = 0.01  #proportional feedback (meters/(second*pixel))
+            cmd.linear.y = -kp * dX[0] # linear.y>0 to move left
+            cmd.linear.z = -kp * dX[1] # linear.z>0 to ascend
+            quad_vel.publish(cmd)
+            interval_rate = rospy.Rate(1) # 1 Hz-> 1 second
+            interval_rate.sleep()
+            cmd = geometry_msgs.msg.Twist() # revert to hover after 1 sec adjustment
+            quad_vel.publish(cmd)
+            
 
-
-        else: 
-            print "landing"
-            while count < 20: #land after 20sec
+        else: #land after 500sec
+            while count < 20:
                 if count == 1:
-                    quad_planstop.publish(std_msgs.msg.Empty())
                     cmd = geometry_msgs.msg.Twist()
                     quad_vel.publish(cmd)
                 quad_land.publish(std_msgs.msg.Empty())
