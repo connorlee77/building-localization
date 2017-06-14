@@ -19,6 +19,7 @@ class Predictor:
 		config_output_filename = 'config.pickle'
 		with open(config_output_filename, 'r') as f_in:
 			self.C = pickle.load(f_in)
+			
 		# turn off any data augmentation at test time
 		self.C.use_horizontal_flips = False
 		self.C.use_vertical_flips = False

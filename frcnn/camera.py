@@ -28,15 +28,7 @@ class Camera:
         self.stride = stride 
 
     def callback(self,data):
-
-        if self.framesProcessed == 0:
-        
-            self.normalizedImage = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            
-            # reset frame stride
-            self.framesProcessed = self.stride
-        else:
-            self.framesProcessed -= 1
+        self.normalizedImage = self.bridge.imgmsg_to_cv2(data, "bgr8")
 
     def getFrame(self):
        return self.normalizedImage

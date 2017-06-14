@@ -24,8 +24,13 @@ class Bebop():
 
     def __init__(self):
         rospy.init_node('parrot_plan', anonymous=True)
+
+        # For GPS
         #self.quad_planstart = rospy.Publisher('/bebop/autoflight/start', std_msgs.msg.String,queue_size=1)
         #self.quad_planstop = rospy.Publisher('/bebop/autoflight/stop', std_msgs.msg.String,queue_size=1)
+
+
+        # Manual flight plan
         self.quad_takeoff = rospy.Publisher('/bebop/takeoff', std_msgs.msg.Empty,queue_size=1)
         self.quad_land = rospy.Publisher('/bebop/land', std_msgs.msg.Empty,queue_size=1)
         self.quad_emergency = rospy.Publisher('/bebop/reset', std_msgs.msg.Empty,queue_size=1)
@@ -35,7 +40,7 @@ class Bebop():
 
         self.command = geometry_msgs.msg.Twist()
 
-        COMMAND_PERIOD = 100 #ms
+        COMMAND_PERIOD = 100 # milliseconds
         self.commandTimer = rospy.Timer(rospy.Duration(COMMAND_PERIOD / 1000.0), self.SendCommand)
 
 
@@ -75,6 +80,7 @@ def parrot_plan():
 
     bebop.takeoff()
 
+    # Takeoff and increase height
     bebop.set_command(roll=0, pitch=0, yaw_velocity=0, z_velocity=1)    
     height = 5
     for i in range(height):
@@ -86,19 +92,26 @@ def parrot_plan():
 
     while not rospy.is_shutdown(): 
         if path_time < 3: 
+
+            # For GPS
             # filename = std_msgs.msg.String()
             # filename.data = 'broadcenter.mavlink' # Uploaded via filezilla to bebop drone's flightplans folder
             # quad_planstart.publish(filename)
-            bebop.set_command(roll=0, pitch=1, yaw_velocity=0, z_velocity=0)
-            print "flying to building"
             
-        elif path_time < 30: #stop GPS autoflight
+            # Manual flight plan to fly forward.
+            bebop.set_command(roll=0, pitch=1, yaw_velocity=0, z_velocity=0)
+            
+        elif path_time < 30:
+            #stop GPS autoflight
             #quad_planstop.publish(std_msgs.msg.Empty())
+            
+            # Stop flying forward
             bebop.hover()
-            print "done flying to building"
 
-        elif path_time < 500: # Fixate on corner
-            print "get corner"
+        elif path_time < 500: 
+
+            # Fixate on corner
+            
             img = bebop.camera.getFrame() # Retrieve image from camera
             name = 'frame' + str(int(path_time)) + '.jpg' 
 
@@ -118,7 +131,6 @@ def parrot_plan():
                     dX = center - corner_center
 
             dX = dX / np.array(img.shape[1], img.shape[0]) 
-            print dX
 
             kp = 0.1  #proportional feedback (meters/(second*pixel))
             y_vel = -kp * dX[0] # linear.y>0 to move left
@@ -130,8 +142,7 @@ def parrot_plan():
             # revert to hover after 1 sec adjustment
             bebop.hover()
 
-        else: #land after 500sec
-            print "landing"
+        else: # land after 500sec
             bebop.land() 
             break
 
