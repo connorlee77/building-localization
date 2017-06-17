@@ -1,3 +1,9 @@
+# Changes made for flying: Predictor class 
+The Predictor class in predictor.py can take in either an opencv image or a filepath to an image. For testing purposes, filepaths are more ideal. When flying or running simulations, it is faster to pass in an image array. 
+
+Returns a list of corners in the format `(probability [0, 1], x1, y1, x2, y2)`
+
+
 # keras-frcnn
 Keras implementation of Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks.
 
