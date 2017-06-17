@@ -1,8 +1,11 @@
-# Changes made for flying: Predictor class 
+# Changes made for flying: 
+## Predictor class 
 The Predictor class in predictor.py can take in either an opencv image or a filepath to an image. For testing purposes, filepaths are more ideal. When flying or running simulations, it is faster to pass in an image array. 
 
 Returns a list of corners in the format `(probability [0, 1], x1, y1, x2, y2)`
 
+## Bebop class 
+A class used for interfacing with the Parrot Bebop drone. `parrot_plan` is a simple flight plan that makes the bebop takeoff and fly forwards for some distance before stopping.   
 
 # keras-frcnn
 Keras implementation of Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks.
